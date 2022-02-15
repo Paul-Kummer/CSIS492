@@ -1,0 +1,144 @@
+By: Paul Kummer
+==================================================================================================================================================================
+HOW TO SETUP YOUR RASPBERRY PI ZERO W TO CONTROL A HIDUSB RELAY WITH C++
+==================================================================================================================================================================
+
+
+(NOTE: if you are use a usb hub, you may have to supply the address within that hub to the relay in order to control it, and it's more complicated)
+-This link may provide some answers: https://www.grant-trebbin.com/2015/07/controlling-usb-relay-with-raspberry-pi.html
+
+
+==================================================================================================================================================================
+### Get required Files and Setting Them up ###
+==================================================================================================================================================================
+
+A. get the files
+	-clone https://github.com/pavel-a/usb-relay.hid
+
+B. get usb lib
+	-sudo apt-get install libusb-dev
+
+C. change permission of make_release_linux.sh, which is in usb-relay-hid-master. Then run it
+	-chmod a+x make_release_linux.sh
+	-./make_release_linux.sh
+	-Now the file "_rel" is created, which contains the needed header and library as well as a command line file for controlling relays
+	-Important files will be 
+		"/_rel/bin-Linux-x86/hidusb-relay/usb_relay_device.so"	Linux Library File
+		"/_rel/bin-Linux-x86/usb_relay_device_lib_devel/usb_relay_device.h" C++ Header file
+
+D. add a line of code to 99-com.rules
+	-cd /etc/udev/rules.d
+	-sudo nano 99-com.rules
+	-At the Beginning add "SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="05df", MODE:="0666"
+	-ctrl + x, to exit; y, to save; enter to overwrite
+	-now the relay can be accessed without root priveledges
+
+
+==================================================================================================================================================================
+### Implementing the library in C++ code ###
+==================================================================================================================================================================
+
+	*UPDATE* the library will go into /usr/lib
+A. Place the header file and the library into the directory of your code, or somewhere you can access it easily
+	-You should have the usb_relay_device.so and usb_relay_device.h files somewhere in your project directory.
+	 Mine were in the directory of the .cpp file I compiled, which is also where my executable is placed.
+
+B. In the .cpp file that controls the relay add code to relay functions/methods/structs
+	-At the beginning of the .cpp file use the directive
+		#include "usb_relay_device.h" //If your directory is different than the location of your .cpp you must supply the path
+	-The documentation says to use a pragma comment(lib, libname), but g++ didn't know what to do with it, so I don't use it
+
+C. Now command in the usb_relay_device.h are accessible to your .cpp code.
+	1.) initialize the relay by calling the function
+		usb_relay_init(); //if it returns -1, it failed
+
+	2.) get a list of pointers to all the devices
+		usb_relay_device_info* myRelays = usb_relay_device_enumerate(); //each pointer points to a struct containing info about the relay
+
+	3.) open a connection to a device
+		int hd = usb_relay_device_open(myRelays); //this will use the first device it finds
+
+	4.) run commands on the relay
+		//my relay is two relays on one board
+		returnVal = usb_relay_device_open_one_relay_channel(hd, 1); //opens relay one
+		returnVal = usb_relay_device_open_one_relay_channel(hd, 2); //opens relay two
+
+
+	---------------------------------------------------------------------------------------
+	//(Sample .cpp)
+	#include <iostream>
+	#include "usb_relay_device.h"
+	using namespace std;
+
+	int main()
+	{
+		int returnVal = 0;
+		if(usb_relay_init()==-1)
+		{
+			std::cout << "failed" << std::endl;
+		}
+
+		usb_relay_device_info* myRelay = usb_relay_device_enumerate();
+		int hd = usb_relay_device_open(myRelay);
+		returnVal = usb_relay_device_close_all_relay_channel(hd);	
+		returnVal = usb_relay_device_open_one_relay_channel(hd, 1);
+		returnVal = usb_relay_device_open_one_relay_channel(hd, 2);
+		usb_relay_device_close(hd);
+		usb_relay_exit();
+		return returnVal;
+	}
+	//(END Sample .cpp)
+	---------------------------------------------------------------------------------------
+	
+
+==================================================================================================================================================================
+### Linking the Library in makefile ###
+==================================================================================================================================================================
+*create a makefile, which allows compilation and linking to be done easier
+
+A. to add the library in the makefile (exclude the < and > symbols)
+	1.) -L <the path to the library>	*Note* -L isn't needed with the new library linking method in step B
+	2.) -l :<the library file name with extension>
+
+	-IE: LFLAGS = -L/home/pi/Desktop/relayTest -l:usb_relay_device.so
+
+B. Next, the path to the library needs to be known on runtime, so do the following from the website below.
+		*UPDATED* for permanent link to library
+	1.) copy the library to 	sudo cp <path/theLib.so> /usr/lib
+	2.) change the permission	sudo chmod 0755 /usr/lib/<theLib.so>
+	3.) create the link		sudo ldconfig
+	4.) not sure what this does	sudo ldconfig -p | grep <curdir>
+	5.) clear LD_LIBRARY_PATH	sudo unset LD_LIBRARY_PATH
+
+		*TEMPORARY LINKING* it gets reset if the pi resets, don't use if the first 5 instructions followed
+	-Pay attention to Step 4
+	-https://www.cprogramming.com/tutorial/shared-libraries-linux-gcc.html
+		*$ LD_LIBRARY_PATH=/home/username/foo:$LD_LIBRARY_PATH
+		*$ export LD_LIBRARY_PATH=/home/username/foo:$LD_LIBRARY_PATH
+
+C. Now, in the directory of your projects, you can run the makefile
+	-make
+	-now the executable should be in your folder and you should be able to run it
+
+
+	---------------------------------------------------------------------------------------
+	#(Sample makefile)
+	EXE = testRelay
+	CC = g++ -std=c++11
+	REMOVABLE_OBJS = testRelay.o
+	PERM_OBJS = 
+	OBJECTS = $(REMOVABLE_OBJS) $(PERM_OBJS)
+	LFLAGS = -l:usb_relay_device.so #-L/home/pi/Desktop/relayTest this isn't needed with new linking
+	CFLAGS = -Wall -I/home/pi/Desktop/relayTest -Wextra -pedantic -g #--verbose
+
+
+	$(EXE):		$(OBJECTS)
+				$(CC) $(CFLAGS) -o $(EXE) $(OBJECTS) $(LFLAGS)
+
+	testRelay.o:	usb_relay_device.h
+				$(CC) $(CFLAGS) -c testRelay.cpp
+
+	clean:
+				rm -rf $(EXE) $(REMOVABLE_OBJS) *~
+	#(END Sample makefile)
+	---------------------------------------------------------------------------------------

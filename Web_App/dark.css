@@ -1,0 +1,224 @@
+*
+{
+	box-sizing: border-box;
+}
+
+body
+{
+	background-color:rgb(55, 56, 59);
+}
+
+h1
+{
+	text-align: center;
+	font-size: medium;
+}
+
+h2
+{
+	text-align: center;
+	font-size: medium;
+}
+
+div.selectBox h1
+{
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	font-size: large;
+}
+
+.selectBox form
+{
+	color: greenyellow;
+	width: 90%;
+	padding: 5px 50px;
+}
+
+.selectBox p
+{
+	color: greenyellow;
+	text-align: center;
+}
+
+.selectBox input[type="text"], 
+.selectBox input[type="number"],
+.selectBox input[type="password"],
+.selectBox select
+{
+	padding: 10px, 10px;
+	height: 23px;
+	background-color: rgb(170, 169, 169);
+	color: rgb(12, 34, 12);
+}
+
+.selectBox input[type="textfield"]
+{
+	padding: 10px, 10px;
+	width: 70%;
+	height: 23px;
+	line-break: normal;
+	overflow-y: scroll;
+	text-align: left;
+	background-color: rgb(170, 169, 169);
+	color: rgb(12, 34, 12);
+}
+
+.header 
+{
+	background-color: rgb(53, 60, 68);
+	padding: 1px;
+	text-align: center;
+	height: 50px;
+	color: greenyellow;
+}
+
+.navLinks
+{
+	margin-top: 1%;
+	overflow: auto;
+	background-color: black;
+	float: bottom;
+	width: 100%;
+	height: 50px;
+	border-style: none;
+	display: block;
+}
+
+.navLinks form
+{
+
+	width: 100%;
+	padding: 0px 30px;
+}
+
+.navLinks input[type=submit], button[type=navButton]
+{
+	display: block;
+	float: left;
+	background-color: rgb(20, 27, 31);
+	border: none;
+	color: rgb(87, 131, 148);
+	padding: 0px 30px;
+	text-decoration: none;
+	margin: 0px 0px;
+	cursor: pointer;
+	height: 100%;
+}
+
+.navLinks input[type=submit]:hover, button[type=navButton]:hover
+{
+	background-color: rgb(108, 160, 31);
+	color: rgb(44, 58, 66);
+}
+
+.selectBox
+{
+	background-color: rgb(51, 50, 59);
+	float: left;
+	width: 100%;
+	height: auto;
+	border-style: ridge;
+}
+
+.columnHistory
+{
+	background-color: rgb(86, 87, 94);
+	float: right;
+	width: 100%;
+	height: 500px;
+	border-style: inset;
+	display: block;
+	overflow: auto;
+	color: greenyellow;
+}
+
+div.columnHistory p
+{
+	padding-left: 20px;
+}
+
+div.columnHistory h1
+{
+	font-size: x-large;
+}
+
+/* add route form*/
+#rtClass
+{
+	width: 40px;
+	padding-left: 10px;
+}
+
+#rtGrade
+{
+	width: 40px;
+	padding-left: 10px;
+}
+
+#rtType
+{
+	width: fit-content;
+	padding-left: 10px;
+}
+
+#rtRate
+{
+	margin-top: 25px;
+	background-color: darkcyan;
+	width: 100%;
+	height: 10px;
+	border-radius: 5px;
+}
+
+#rtRate ::-webkit-slider-thumb
+{
+	background-color: rgb(7, 148, 61);
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+/* End add route form*/
+
+/*Table Styles*/
+#ROUTE
+{
+	margin: 0 auto;
+}
+
+#ROUTE th, td
+{
+	border: 2px collapse rgb(2, 59, 40);
+	background-color: rgb(50, 58, 59);
+	text-align: center;
+	color: yellowgreen;
+}
+/* End Table Styles*/
+
+  
+/* Clear floats after the columns */
+.row:after 
+{
+	content: "";
+	display: table;
+	clear: both;
+}
+ 
+/* Responsive layout - makes the three columns stack on top of each other instead of next to each other on smaller screens (600px wide or less) */
+@media screen and (max-width: 600px)
+{
+	.selectBox 
+	{
+		height: 500px;
+		width: 100%;
+	}
+
+	.columnHistory
+	{
+		height: 800px;
+		width: 100%;
+	}
+
+	.navLinks
+	{
+		width: 100%
+	}
+}

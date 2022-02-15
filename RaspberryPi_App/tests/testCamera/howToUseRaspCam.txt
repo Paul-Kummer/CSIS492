@@ -1,0 +1,91 @@
+By: Paul Kummer
+==================================================================================================================================================================
+HOW TO SETUP YOUR RASPBERRY PI ZERO W TO CAPTURE IMAGES WITH RASPICAMERA
+==================================================================================================================================================================
+
+
+
+==================================================================================================================================================================
+### Get required Files and Setting Them up ###
+==================================================================================================================================================================
+A. get the files
+	-https://github.com/cedricve/raspicam
+	-place the unzipped file in the directory of your project
+
+B. install cmake if it isn't already installed
+	-sudo apt-get install cmake
+
+???. install opencv, Not sure if this is needed
+	-
+
+C. make a folder called build in the folder of the unzipped file and use cmake
+	-mkdir build
+	-cd build
+	-cmake ..
+
+D. compile
+	-make
+	-sudo make install
+	-sudo ldconfig
+
+
+==================================================================================================================================================================
+### Write some code ###
+==================================================================================================================================================================
+A. Look through the sample code for some details on how to use the code in C++. Check the headers to see what methods are available
+
+B. Add the dependant headers with include directive
+	-#include "raspicam-master/src/raspicam.h"
+	-#include "raspicam-master/src/raspicamtypes.h"
+
+C. Create a camera object
+	-raspicam::RaspiCam Camera; //Camera object
+
+D. Open the camera connection
+	-Camera.open() //will return null if it doesn't open
+
+E. Get a picture in the data stream
+	-Camera.grab()
+
+F. Make an array to hold the data in the buffer
+	-unsigned char *data=new unsigned char[  Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
+
+G. Extract the image in rgb format
+	-Camera.retrieve ( data,raspicam::RASPICAM_FORMAT_RGB );//get camera image
+
+H. Close the camera
+	-Camera.release();
+
+
+==================================================================================================================================================================
+### Compile the code to executable ###
+==================================================================================================================================================================
+A. you must supply the path to the libraries first
+	-export LIBRARY_PATH=/opt/vc/lib
+
+B. Add the include and libraries to your makefile, include the first dash
+	-I/usr/local/include
+	-L/user/local/lib/
+	-lraspicam -lmmal -lmmal_core -lmmal_util
+
+C. If the rest of the makefile has its proper header files included with its objects, it should be ready to compile
+	-make
+
+	#(sample makefile)
+	EXE = testbmp
+	CC = g++
+	REMOVABLE_OBJS = testCamera.o
+	PERM_OBJS = 
+	OBJECTS = $(REMOVABLE_OBJS) $(PERM_OBJS)
+	LFLAGS = -I/usr/local/include -L/user/local/lib/ -lraspicam -lmmal -lmmal_core -lmmal_util
+	#LFLAGS = -I/usr/local/include/ -lraspicam -lraspicam_cv -lmmal -lmmal_core -lmmal_util -lopencv_core -lopencv_highgui #this is with opencv
+	CFLAGS = -std=c++11
+
+	$(EXE):				$(OBJECTS)
+					$(CC) $(CFLAGS) -o $(EXE) $(OBJECTS) $(LFLAGS)
+
+	testCamera.o:			testCamera.cpp bmp.h raspicam-master/src/raspicam.h raspicam-master/src/raspicamtypes.h
+						$(CC) $(CFLAGS) -c testCamera.cpp
+
+	clean:
+						rm -rf $(EXE) $(REMOVABLE_OBJS) *~
