@@ -1,0 +1,29 @@
+By: Paul Kummer
+==================================================================================================================================================================
+HOW TO SETUP YOUR RASPBERRY PI ZERO W TO CAPTURE IMAGES WITH RASPICAMERA
+==================================================================================================================================================================
+
+
+
+==================================================================================================================================================================
+### Get required Files and Setting Them up ###
+==================================================================================================================================================================
+A. get the files
+	-https://github.com/cedricve/raspicam
+	-place the unzipped file in the directory of your project
+
+B. install cmake if it isn't already installed
+	-sudo apt-get install cmake
+
+???. install opencv, Not sure if this is needed
+	-
+
+C. make a folder called build in the folder of the unzipped file and use cmake
+	-mkdir build
+	-cd build
+	-cmake ..
+
+D. compile
+	-make
+	-sudo make install
+	-sudo ldconfig
