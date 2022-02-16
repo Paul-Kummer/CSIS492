@@ -1,6 +1,6 @@
 File: README.txt
 Author: Paul Kummer
-Program: CLIMB
+Project: CLIMB
 Modified: 02/15/22
 
 Climbing Log Information Managment Bundle (CLIMB)
