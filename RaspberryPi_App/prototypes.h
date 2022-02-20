@@ -50,5 +50,6 @@ void makeLine(imageArr& pixArr, float yIntercept, float slope, Pixel lineColor, 
 void controlSwitch(float curAngle, float desiredAngle, bool& angleAchieved, intptr_t& relayDevice); //originally for single thread design
 void captureImages (imageArr bmpPixels, float* angle, raspicam::RaspiCam& Camera);
 float adjustToAngle();
+float openListenFd();
 
 #endif
