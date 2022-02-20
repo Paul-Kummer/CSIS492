@@ -2,5 +2,5 @@
 	$host = "localhost";
 	$dbname = "paul_wall";
 	$username = "climber";
-	$password = "Th3Tim3IsClimb!";
+	$password = "REDACTED"; //Change this to your password
 ?>
