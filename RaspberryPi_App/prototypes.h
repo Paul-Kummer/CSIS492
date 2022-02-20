@@ -14,16 +14,27 @@
 #include "raspicam-master/src/raspicam.h"
 #include "raspicam-master/src/raspicamtypes.h"
 #include "bmp.h"
-#include <unistd.h>
 #include "usb_relay_device.h"
 
-const int BYTES_PER_PIXEL = 3; /// red, green, & blue
+//These are for TCP Socket
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+
+//#define PORT 8080
+//#define ADDRESS "192.168.1.37"
+const std::string ADDRESS = "192.168.1.37"; // webserver IP
+const int PORT = 8080;
+const int BYTES_PER_PIXEL = 3; // red, green, & blue
 const int FILE_HEADER_SIZE = 14;
 const int INFO_HEADER_SIZE = 40;
 const int WIDTH = 640; //must be divisible 320
 const int HEIGHT = 720; //must be divisible 240
-const int MAX_ANGLE = 75;
-const int MIN_ANGLE = 10;
+const int MAX_ANGLE = 88;
+const int MIN_ANGLE = 25;
 
 
 //This typedef must come after Pixel is defined

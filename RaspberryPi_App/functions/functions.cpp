@@ -278,7 +278,7 @@ void captureImages (imageArr bmpPixels, float* angle, raspicam::RaspiCam& Camera
 	*angle = getAngle(bmpPixels, true, true); //returns the angle and takes input of pixel vector, draw line of best fit, and show statistics of line
 	
 	//create the name for the test image
-	std::string strName = "NewImage.bmp";
+	std::string strName = "wallAngle.bmp";
 	char* imageName = &strName[0];
 
 	//create an image of the current capture and put a line of best fit drawn over it
@@ -409,4 +409,69 @@ float adjustToAngle()
 	angleToAdjustTo = angleToAdjustTo<MIN_ANGLE?MIN_ANGLE:angleToAdjustTo;
 
 	return angleToAdjustTo;
+}
+
+
+
+
+
+float openListenFd() 
+{
+	struct sockaddr_in addr;
+    char message[1024] = {0};
+    int serverFD;
+	int newSock;
+	int readVal;
+    int opt = 1;
+	int addrSize = sizeof(addr);
+	float wallAngle;
+
+    if ((serverFD = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+	{
+		std::cout << "Socket Initialization Failed" << std::endl;
+		exit(EXIT_FAILURE);
+    }
+	std::cout << "Socket Initialized On Port: " << PORT << std::endl;
+ 
+    if (setsockopt(serverFD, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+	{
+		std::cout << "Setting socket Failed" << std::endl;
+		exit(EXIT_FAILURE);
+    }
+	std::cout << "Socket Options Set." << std::endl;
+
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY; //inet_addr(ADDRESS);
+    addr.sin_port = htons(PORT);
+
+    if(bind(serverFD, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+	{
+		std::cout << "Bind Failed" << std::endl;
+		exit(EXIT_FAILURE);
+    }
+    std::cout << "Bound to Socket." << std::endl;
+
+    if(listen(serverFD, 3) < 0) //the number is the maximum pending connections
+	{
+		std::cout << "Listening Failed" << std::endl;
+		close(serverFD);
+		exit(EXIT_FAILURE);
+    }
+	std::cout << "Listening on Socket." << std::endl;
+
+	if ((newSock = accept(serverFD, (struct sockaddr *)&addr, (socklen_t*)&addrSize)) < 0)
+	{
+		std::cout << "Accept Failed" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	std::cout << "Accepted New Socket." << std::endl;
+
+	readVal = read(newSock, message, 1024);
+	printf("Chaning Angle to: [ %s ].", message);
+
+	wallAngle = std::stof(message);
+
+	close(newSock);
+	close(serverFD);
+    return wallAngle;
 }
