@@ -2,7 +2,8 @@
 	//putting include here will preserve class objects if they are ever used
 	include "dbFunctions.php";
 	include "functions.php";
-	include "forms.php"; 
+	include "forms.php";
+
 	session_start() 
 ?>
 
@@ -180,6 +181,14 @@
 			$paramString = "'".$_SESSION['uID']."','".$_REQUEST['oldPass']."','".$_REQUEST['newPass']."'";
 			executeSP($_SESSION['dispOut'], "updatePass", $paramString);
 			$notification = "-Changed Password-";
+		break;
+
+
+		case "Change Angle":
+			//call viewRtsBetween('0', '5');
+			$paramString = "'".$_REQUEST['wallAngle']"'";
+			AdjustAngle($paramString);
+			$notification = "-Changing Wall Angle to". $paramString ."-";
 		break;
 		// END HERE
 

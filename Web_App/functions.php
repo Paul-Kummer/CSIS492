@@ -1,4 +1,9 @@
 <?php
+	$MAXANGLE = 90;
+	$MINANGLE = 30;
+	$ADDRESS = '192.168.1.82';
+	$PORT = '8080';
+
 	function ToggleBool(&$boolVal)
 	{
 		//$boolVal = $boolVal?false:true;
@@ -13,37 +18,48 @@
 	};
 
 
-	function AdjustAngle(&$newAngle, $address='192.168.1.37', $port='8080')
+	function AdjustAngle($newAngle)
 	{
-		$succeeded = false;
+		global $ADDRESS, $PORT;
+		$isSuccess = false;
 
 		if(ValidateAngle($newAngle))
 		{
 			$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-			$result = socket_connect($socket, $address, $service_port);
-	
-			if($socket === true && $result === true)
+
+			if($socket)
 			{
-				$succeeded = true;
-				socket_write($socket, $newAngle, strlen($newAngle));
+				$connect = socket_connect($socket, $ADDRESS, $PORT);
+
+				if($connect)
+				{
+					$isSuccess = socket_write($socket, $newAngle, strlen($newAngle));
+				};
 			};
-	
+
 			socket_close($socket);
 		};
 
-		return $succeeded;
+		return $isSuccess;
 	};
-
 	
-	function ValidateAngle($angle=null)
-	{
-		$isValid = false;
-		$maxAngle = 90;
-		$minAngle = 30;
 
-		if(is_int($angle))
+	function ValidateAngle($angle)
+	{
+		global $MAXANGLE, $MINANGLE;
+		$isValid = false;
+
+		if(is_numeric($angle))
 		{
-			if($angle <= $maxAngle && $angle >= $minAngle)
+			/*
+			Climbers view a wall of straight vertical as a 0 degree wall. A Horizontal
+			wall would be considered 90 degrees. This is 90 degree difference geometrically
+			so it must be adjusted by subtracting the $angle from 90 degrees.
+			*/
+			$angle = ((int)90 - (int)$angle);
+
+			//Make sure the angle is within the walls valid range
+			if($angle <= $MAXANGLE && $angle >= $MINANGLE)
 			{
 				$isValid = true;
 			};

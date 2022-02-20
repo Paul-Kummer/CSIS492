@@ -2,43 +2,45 @@
 <?php
 error_reporting(E_ALL);
 
+$min = 30;
+$max = 90;
+
 echo "<h2>TCP/IP Connection</h2>\n";
 
 /* Get the port for the WWW service. */
 $service_port = 8080;
 
 /* Get the IP address for the target host. */
-$address = '192.168.1.37';
+$address = '192.168.1.82';
 
 /* Create a TCP/IP socket. */
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-if ($socket === false) {
+if ($socket === false) 
+{
     echo "socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n";
-} else {
-    echo "OK.\n";
+} 
+else 
+{
+    echo "Socket Created.\n";
 }
 
 echo "\nAttempting to connect to '$address' on port '$service_port'...";
 $result = socket_connect($socket, $address, $service_port);
-if ($result === false) {
+
+if ($result === false) 
+{
     echo "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) . "\n";
-} else {
-    echo "OK.\n";
+} 
+else 
+{
+    echo "Connected to Socket.\n";
 }
 
-$in = "HEAD / HTTP/1.1\r\n";
-$in .= "Host: www.example.com\r\n";
-$in .= "Connection: Close\r\n\r\n";
-$out = '';
+$out = rand(int $min, int $max);
 
 echo "\nSending HTTP HEAD request...";
-socket_write($socket, $in, strlen($in));
+socket_write($socket, $out, strlen($out));
 echo "OK.\n";
-
-echo "\nReading response:\n\n";
-while ($out = socket_read($socket, 2048)) {
-    echo $out;
-}
 
 echo "\nClosing socket...";
 socket_close($socket);
