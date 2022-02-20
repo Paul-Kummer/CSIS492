@@ -1,7 +1,7 @@
 <?php
 	$MAXANGLE = 90;
 	$MINANGLE = 30;
-	$ADDRESS = '192.168.1.82';
+	$ADDRESS = '192.168.1.42';
 	$PORT = '8080';
 
 	function ToggleBool(&$boolVal)
@@ -26,7 +26,7 @@
 		if(ValidateAngle($newAngle))
 		{
 			$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-
+	
 			if($socket)
 			{
 				$connect = socket_connect($socket, $ADDRESS, $PORT);
@@ -36,18 +36,19 @@
 					$isSuccess = socket_write($socket, $newAngle, strlen($newAngle));
 				};
 			};
-
+	
 			socket_close($socket);
 		};
 
 		return $isSuccess;
 	};
-	
 
-	function ValidateAngle($angle)
+	
+	function ValidateAngle(&$angle)
 	{
 		global $MAXANGLE, $MINANGLE;
 		$isValid = false;
+
 
 		if(is_numeric($angle))
 		{
@@ -57,7 +58,7 @@
 			so it must be adjusted by subtracting the $angle from 90 degrees.
 			*/
 			$angle = ((int)90 - (int)$angle);
-
+			
 			//Make sure the angle is within the walls valid range
 			if($angle <= $MAXANGLE && $angle >= $MINANGLE)
 			{

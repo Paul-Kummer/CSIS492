@@ -152,14 +152,14 @@ HERE;
                         <h4>ATTENTION: use route id number in "Route Name" field if you are changing grade or info</h4>
                     </fieldset>
                     </form>'
-
+                    
                     .   "<form action=".$path." method='POST'>
                     <fieldset>
                         <legend><b>Change Wall Angle: </b></legend>
                         <label for='angle'>Angle</label>
                         <select name='wallAngle'>
                             <option value='0'>0</option>
-                            <option value='85'>5</option>
+                            <option value='5'>5</option>
                             <option value='10'>10</option>
                             <option value='15'>15</option>
                             <option value='20'>20</option>
