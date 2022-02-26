@@ -1,29 +1,40 @@
 #include "prototypes.h"
 #include "functions/functions.cpp"
 
-
-using namespace std;
-
-
 int main() 
 {
 	/* start declare variables*/
 	bool successfulInit = true;
-	bool angleAchieved;
+	bool angleAchieved = false;
 	float desiredAngle;
 	float angle = 0;
 	float* anglePtr = &angle;
 	usb_relay_device_info* myRelay;
 	intptr_t relayDevice;
 	imageArr newImg;
+	DIRECTION dir = STOP;
+	DIRECTION* dirPtr = &dir;
 	/* END VARIABLES*/
 
+////// INITIALIZE THE PERIPHERALS //////
+
+	/* Statup OLED Display*/
+	std::cout << "Starting OLED Display..." << std::endl;
+	if(!bcm2835_init())
+	{
+		successfulInit = false;
+		std::cout << "faild to connect to OLED display!" << std::endl;
+	}
+
+	SetupDisp();
+	std::thread dispThread (Disp, dirPtr, anglePtr);
+	/* END DISP START */
 
 	/* start initialize camera*/
 	//The width must be divisible by 320
 	//The height must be diviible by 240
-	raspicam::RaspiCam Camera; //Camera object
 	//getting seg fault for larger values
+	raspicam::RaspiCam Camera; //Camera object
 	Camera.setFormat(raspicam::RASPICAM_FORMAT_RGB); //can change this to bmp
 	Camera.setWidth(WIDTH);
 	Camera.setHeight(HEIGHT);
@@ -32,7 +43,7 @@ int main()
 	Camera.setSharpness(80);
 
 	//Open camera 
-	std::cout << "Opening Camera..." << std::endl;
+	std::cout << "Starting Camera..." << std::endl;
 	if(!Camera.open()) 
 	{
 		successfulInit = false;
@@ -42,6 +53,7 @@ int main()
 
 
 	/* start initialize relays*/
+	std::cout << "Starting Relays..." << std::endl;
 	if(usb_relay_init()==-1)
 	{
 		successfulInit = false;
@@ -57,6 +69,10 @@ int main()
 	}
 	/* END RELAY INIT*/
 
+////// END INITIALIZATION //////
+
+
+////// MAIN LOOP OF THE PROGRAM //////
 
 	/* start angle adjustments*/
 	if(successfulInit)
@@ -66,35 +82,45 @@ int main()
 			newImg.resize(HEIGHT);
 			for(int i=0; i < HEIGHT; i++) {newImg[i].resize(WIDTH);};
 
-			/*
-			I don't think I need to open and close the socket so frequently
-			*/
-			//desiredAngle = adjustToAngle();
 			desiredAngle = openListenFd();
 			
 			do
 			{
 				captureImages(newImg, anglePtr, Camera);
-				controlSwitch(angle, desiredAngle, angleAchieved, relayDevice);
-			} while (!angleAchieved);
+				controlSwitch(angle, desiredAngle, angleAchieved, relayDevice, dirPtr);
+			} while (!angleAchieved && desiredAngle != -1);
 			angleAchieved = false;
 		} while(desiredAngle != -1);
 	}
 	/* END ANGLE ADJUST*/
 	
+	dir = EXIT;
+	dispThread.join();
 
-	/* start shut down relay control*/
+////// END MAIN LOOP //////
+
+
+////// SHUTDOWN PERIPHERALS //////
+
+	/* shut down disp control*/
+	std::cout<<"releasing display"<<std::endl;
+	EndDisp();
+	/* END DISP SHUTDOWN*/
+
+	/* shut down camera control*/
+	std::cout<<"releasing camera"<<std::endl;
+	Camera.release();
+	/* END CAMERA SHUTDOWN*/
+
+	/* shut down relay control*/
+	std::cout<<"releasing relays"<<std::endl;
 	usb_relay_device_close_all_relay_channel(relayDevice);
 	usb_relay_device_close(relayDevice);
 	usb_relay_device_free_enumerate(myRelay);
 	usb_relay_exit();
 	/* END RELAY SHUTDOWN*/
 
-
-	/* start shut down camera control*/
-	std::cout<<"releasing camera"<<std::endl;
-	Camera.release();
-	/* END CAMERA SHUTDOWN*/
+////// END SHUTDOWN //////
 
 	return 0;
 }

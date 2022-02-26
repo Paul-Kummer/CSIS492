@@ -154,36 +154,45 @@ float getAngle (imageArr& pixArr, bool drawLine, bool showStats)
 
 
 //change this to not turn on relays if they are already on
-void controlSwitch(float curAngle, float desiredAngle, bool& angleAchieved, intptr_t& hd)
+void controlSwitch(float curAngle, float desiredAngle, bool& angleAchieved, intptr_t& hd, DIRECTION* dirPtr)
 {
 	float deltaAngle = desiredAngle - curAngle;
 	int relayOne, relayTwo;
+	int tolerance = 2; // amount of tolerance in degrees that the wall should get to.
 	
-	//determine what switch if any should be run. That way they cannot alternate back and forth if they overshoot.
-	if(deltaAngle > -1 && deltaAngle < 1)
+	if(desiredAngle != (float)-1) // -1 signals shutdown
 	{
-		printf("\nSwitches Off\n");
-		angleAchieved = true;
-		relayTwo = usb_relay_device_close_one_relay_channel(hd, 2);
-		relayOne = usb_relay_device_close_one_relay_channel(hd, 1);
-	}
-	else if(deltaAngle < 0) 
-	{
-		printf("\nSwitch One Is On\n");
-		relayOne = usb_relay_device_open_one_relay_channel(hd, 1);
-		relayTwo = usb_relay_device_close_one_relay_channel(hd, 2);
+		//determine what switch if any should be run. That way they cannot alternate back and forth indefinitely if they overshoot.
+		if(deltaAngle > - tolerance && deltaAngle < tolerance) //angle is within threshold of correctness
+		{
+			printf("\nSwitches Off: Movement Stopped");
+			angleAchieved = true;
+			relayTwo = usb_relay_device_close_one_relay_channel(hd, 2);
+			relayOne = usb_relay_device_close_one_relay_channel(hd, 1);
 
-	}
-	else
-	{
-		printf("\nSwitch Two Is On\n");
-		relayTwo = usb_relay_device_open_one_relay_channel(hd, 2);
-		relayOne = usb_relay_device_close_one_relay_channel(hd, 1);
-	}
+			*dirPtr = STOP;
+			
+		}
+		else if(deltaAngle < 0)
+		{
+			printf("\nSwitch One Is On: Moving Down");
+			relayOne = usb_relay_device_open_one_relay_channel(hd, 1);
+			relayTwo = usb_relay_device_close_one_relay_channel(hd, 2);
 
-	std::cout << "relayOne: " << relayOne << " | relayTwo: " << relayTwo << std::endl;
+			*dirPtr = DOWN;
+		}
+		else
+		{
+			printf("\nSwitch Two Is On: Moving Up");
+			relayTwo = usb_relay_device_open_one_relay_channel(hd, 2);
+			relayOne = usb_relay_device_close_one_relay_channel(hd, 1);
+
+			*dirPtr = UP;
+		}
+
+		std::cout << "relayOne: " << relayOne << " | relayTwo: " << relayTwo << std::endl;
+	}
 }
-
 
 
 
@@ -219,30 +228,31 @@ void toBlackAndWhite(imageArr& pixArr, int maxColorLimit, int trimAmount)
 void captureImages (imageArr bmpPixels, float* angle, raspicam::RaspiCam& Camera)
 {
 	//wait a while until camera stabilizes
-	std::cout<<"Sleeping for 1 secs"<<std::endl;
-	usleep(1*1000000);
+	//std::cout<<"Sleeping for 1 secs"<<std::endl;
+	usleep(500000); // half second
+	//usleep(1000000); // one second
 
 	//capture
-	std::cout<<"grabbing"<<std::endl;
+	//std::cout<<"grabbing"<<std::endl;
 	Camera.grab();
 
 	//allocate memory
-	std::cout<<"allocating"<<std::endl;
+	//std::cout<<"allocating"<<std::endl;
 	unsigned char *data=new unsigned char[  Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
 
 	//extract the image in rgb format
-	std::cout << "extracting img in rgb" << std::endl;
+	//std::cout << "extracting img in rgb" << std::endl;
 	Camera.retrieve ( data ); //get camera image
 
-	std::cout<<"getting length width height"<<std::endl;
+	//std::cout<<"getting length width height"<<std::endl;
 	unsigned int length = Camera.getImageBufferSize(); // Header + Image Data + Padding
 	unsigned int width = Camera.getWidth();
 	unsigned int height = Camera.getHeight();
 	
-	std::cout << "heightcam: " << height << " |widthcam: " << width << std::endl;
+	//std::cout << "heightcam: " << height << " |widthcam: " << width << std::endl;
 	unsigned char* arrayOfWhat = Camera.getImageBufferData(); //This might be an array of all the colors, but may also include the header
 
-	std::cout<<"getting data"<<std::endl;
+	//std::cout<<"getting data"<<std::endl;
 	int numOfChars = (height * width * BYTES_PER_PIXEL);
 	int xPos = 0;
 	int yPos = 0;
@@ -467,7 +477,7 @@ float openListenFd()
 	std::cout << "Accepted New Socket." << std::endl;
 
 	readVal = read(newSock, message, 1024);
-	printf("Chaning Angle to: [ %s ].", message);
+	printf("Chaning Angle to: [ %s ].\n", message);
 
 	wallAngle = std::stof(message);
 
